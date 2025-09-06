@@ -1,47 +1,49 @@
-<x-app-layout>
-    <div class="max-w-2xl mx-auto mt-10">
-        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
-            <h2 class="text-xl font-semibold mb-4">Add Task</h2>
-            <form method="POST" action="{{ route('todos.store') }}">
-                @csrf
-                <input type="text" name="title" placeholder="Title"
-                    class="w-full p-2 rounded-lg border mb-2" required>
-                <textarea name="description" placeholder="Description"
-                    class="w-full p-2 rounded-lg border mb-2"></textarea>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add Task</button>
-            </form>
-            @error('title') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
-            @error('description') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+@extends('layouts.app')
+
+@section('content')
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 py-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 w-full max-w-4xl">
+        <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white text-center">Your Tasks</h1>
+
+        <div class="mb-4 text-right">
+            <a href="{{ route('todos.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">Add Task</a>
         </div>
 
-        <div class="mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
-            <h2 class="text-xl font-semibold mb-4">Task List</h2>
-            @forelse($tasks as $task)
-                <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2">
-                    <div>
-                        <p class="font-medium">{{ $task['title'] }} ({{ $task['status'] }})</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ $task['description'] }}</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <a href="{{ route('todos.edit', $task['id']) }}"
-                           class="px-3 py-1 bg-yellow-500 text-white rounded-lg">Edit</a>
-                        <form method="POST" action="{{ route('todos.destroy', $task['id']) }}">
+        <table id="tasks-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-auto">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                    <th class="px-4 py-2 text-left">ID</th>
+                    <th class="px-4 py-2 text-left">Title</th>
+                    <th class="px-4 py-2 text-left">Description</th>
+                    <th class="px-4 py-2 text-left">Status</th>
+                    <th class="px-4 py-2 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($tasks as $task)
+                <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+                    <td class="px-4 py-2">{{ $task->id }}</td>
+                    <td class="px-4 py-2">{{ $task->title }}</td>
+                    <td class="px-4 py-2">{{ $task->description }}</td>
+                    <td class="px-4 py-2">{{ $task->status }}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <a href="{{ route('todos.edit', $task->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">Edit</a>
+                        <form action="{{ route('todos.destroy', $task->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button class="px-3 py-1 bg-red-600 text-white rounded-lg">Delete</button>
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Delete</button>
                         </form>
-                    </div>
-                </div>
-            @empty
-                <p>No tasks yet.</p>
-            @endforelse
-        </div>
-
-        <form method="POST" action="{{ route('theme.toggle') }}" class="mt-6 text-center">
-            @csrf
-            <button class="px-4 py-2 rounded-lg bg-gray-900 text-white">
-                Toggle Theme
-            </button>
-        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-</x-app-layout>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#tasks-table').DataTable();
+    });
+</script>
+@endsection

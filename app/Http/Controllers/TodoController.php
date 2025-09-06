@@ -2,73 +2,78 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TodoController extends Controller
 {
-    public function index(Request $request)
+    // List tasks
+    public function index()
     {
-        $tasks = $request->session()->get('tasks', []);
+        $tasks = auth()->user()->tasks()->latest()->get(); // only current user's tasks
         return view('todos.index', compact('tasks'));
     }
 
-    public function store(Request $request)
+
+    // Show create form
+    public function create()
     {
-        $request->validate([
-            'title' => 'required|min:3',
-            'description' => 'nullable|max:255'
-        ]);
-
-        $tasks = $request->session()->get('tasks', []);
-
-        $tasks[] = [
-            'id' => uniqid(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => 'pending'
-        ];
-
-        $request->session()->put('tasks', $tasks);
-
-        return redirect()->route('todos.index');
+        return view('todos.create');
     }
 
-    public function edit($id, Request $request)
+    // Store task
+    public function store(Request $request)
     {
-        $tasks = $request->session()->get('tasks', []);
-        $task = collect($tasks)->firstWhere('id', $id);
+        $validated = $request->validate([
+            'title' => 'required|min:3',
+            'description' => 'nullable|max:255',
+        ]);
+
+        $validated['user_id'] = Auth::id();
+        $validated['status'] = 'Pending';
+
+        Task::create($validated);
+
+        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+    }
+
+    // Show edit form
+    public function edit(Task $task)
+    {
+        $this->authorizeTask($task);
         return view('todos.edit', compact('task'));
     }
 
-    public function update($id, Request $request)
+    // Update task
+    public function update(Request $request, Task $task)
     {
-        $request->validate([
+        $this->authorizeTask($task);
+
+        $validated = $request->validate([
             'title' => 'required|min:3',
             'description' => 'nullable|max:255',
-            'status' => 'required|in:pending,done'
+            'status' => 'required|in:Pending,Completed',
         ]);
 
-        $tasks = $request->session()->get('tasks', []);
-        foreach ($tasks as &$task) {
-            if ($task['id'] === $id) {
-                $task['title'] = $request->title;
-                $task['description'] = $request->description;
-                $task['status'] = $request->status;
-            }
-        }
+        $task->update($validated);
 
-        $request->session()->put('tasks', $tasks);
-
-        return redirect()->route('todos.index');
+        return redirect()->route('todos.index')->with('success', 'Task updated successfully.');
     }
 
-    public function destroy($id, Request $request)
+    // Delete task
+    public function destroy(Task $task)
     {
-        $tasks = $request->session()->get('tasks', []);
-        $tasks = array_filter($tasks, fn($t) => $t['id'] !== $id);
+        $this->authorizeTask($task);
+        $task->delete();
 
-        $request->session()->put('tasks', $tasks);
+        return redirect()->route('todos.index')->with('success', 'Task deleted successfully.');
+    }
 
-        return redirect()->route('todos.index');
+    private function authorizeTask(Task $task)
+    {
+        if ($task->user_id !== Auth::id()) {
+            abort(403);
+        }
     }
 }

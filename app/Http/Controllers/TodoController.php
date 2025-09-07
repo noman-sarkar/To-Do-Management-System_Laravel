@@ -30,20 +30,38 @@ class TodoController extends Controller
             'description' => 'nullable|max:255',
         ]);
 
+
+
         $validated['user_id'] = Auth::id();
         $validated['status'] = 'Pending';
+        //dd($validated['user_id'] , Auth::id() );
 
         Task::create($validated);
 
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+        return redirect()->route('todos.index')->with('success', 'Task created successfully.');
     }
 
     // Show edit form
     public function edit(Task $task)
     {
+        //dd($task);
         $this->authorizeTask($task);
         return view('todos.edit', compact('task'));
     }
+    // public function edit($id = 6)
+    // {
+    //     $task = Task::findOrFail($id);
+    //     $this->authorizeTask($task);
+    //     return view('todos.edit', compact('task'));
+    // }
+
+    //     public function edit(Task $todo)
+    // {
+    //     dd($todo->toArray()); // now it should have user_id
+    // }
+
+
+
 
     // Update task
     public function update(Request $request, Task $task)
@@ -73,6 +91,7 @@ class TodoController extends Controller
     private function authorizeTask(Task $task)
     {
         if ($task->user_id !== Auth::id()) {
+            // dd($task->user_id,Auth::id());
             abort(403);
         }
     }

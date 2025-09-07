@@ -27,11 +27,16 @@
                     <td class="px-4 py-2">{{ $task->description }}</td>
                     <td class="px-4 py-2">{{ $task->status }}</td>
                     <td class="px-4 py-2 space-x-2">
-                        <a href="{{ route('todos.edit', $task->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">Edit</a>
-                        <form action="{{ route('todos.destroy', $task->id) }}" method="POST" class="inline">
+                        <a href="{{ route('todos.edit', $task) }}"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">Edit</a>
+
+                        <form action="{{ route('todos.destroy', $task) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Delete</button>
+                            <button type="submit"
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                                Delete
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -42,7 +47,7 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('#tasks-table').DataTable();
     });
 </script>
